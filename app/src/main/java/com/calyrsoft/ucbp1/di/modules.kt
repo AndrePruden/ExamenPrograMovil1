@@ -1,5 +1,8 @@
 package com.calyrsoft.ucbp1.di
 
+import androidx.room.Room
+import com.calyrsoft.ucbp1.features.dollar.data.datasource.DollarLocalDataSource
+import com.calyrsoft.ucbp1.features.dollar.data.datasource.local.AppDatabase
 import com.calyrsoft.ucbp1.features.dollar.data.repository.DollarRepository
 import com.calyrsoft.ucbp1.features.dollar.datasource.RealTimeRemoteDataSource
 import com.calyrsoft.ucbp1.features.dollar.domain.repository.IDollarRepository
@@ -105,6 +108,25 @@ val appModule = module {
 
     // Repository (le pasamos el DataSource)
     single<IDollarRepository> { DollarRepository(get()) }
+
+    // EXAMEN DOLLAR STAR
+    single {
+        Room.databaseBuilder(
+            get(),
+            AppDatabase::class.java,
+            "dollar_history_db"
+        ).build()
+    }
+    single { get<AppDatabase>().rateHistoryDao() }
+    single { DollarLocalDataSource(get()) }
+
+    //Dolar Cotizacion:
+//    single { RealTimeRemoteDataSource() }
+//    // Actualizamos la definición del DollarRepository
+//    single<IDollarRepository> { DollarRepository(get()) } // Koin le pasará el remote y local datasource
+//    factory { FetchDollarUseCase(get()) }
+//    viewModel { DollarViewModel(get()) }
+    //EXAMEN DOLLAR END
 
     // UseCase (le pasamos el Repositorio)
     factory { FetchDollarUseCase(get()) }

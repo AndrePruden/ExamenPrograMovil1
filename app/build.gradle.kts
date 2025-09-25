@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
+    //alias(libs.plugins.kotlin.kapt)
 }
 
 android {
@@ -69,6 +70,10 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
 
     //Dependencias agregas por Andre
-
+    // ROOM
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+//    //noinspection KaptUsageInsteadOfKsp
+//    kapt(libs.androidx.room.compiler)
 
 }
