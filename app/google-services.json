@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "770477135760",
+    "project_id": "ucbp1-pruden",
+    "storage_bucket": "ucbp1-pruden.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:770477135760:android:f3d691066b1a27e630c515",
+        "android_client_info": {
+          "package_name": "com.calyrsoft.ucbp1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBX-ZU2hBxPNYGq5p4g0En4Sr0q0TrCoYU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
