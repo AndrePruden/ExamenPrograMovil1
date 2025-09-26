@@ -5,7 +5,7 @@ import com.calyrsoft.ucbp1.features.movies.data.api.MovieService
 import com.calyrsoft.ucbp1.features.movies.data.api.dto.MovieDto
 
 class MovieRemoteDataSource(private val movieService: MovieService) {
-    // Es mejor no tener la API Key aquí, pero para el ejemplo funciona.
+
     private val apiKey = "fa3e844ce31744388e07fa47c7c5d8c3"
 
     suspend fun getPopularMovies(): Result<List<MovieDto>> {

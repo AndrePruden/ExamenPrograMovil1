@@ -19,7 +19,9 @@ import com.calyrsoft.ucbp1.features.login.domain.repository.ILoginRepository
 import com.calyrsoft.ucbp1.features.login.domain.usecase.LoginUseCase
 import com.calyrsoft.ucbp1.features.login.presentation.LoginViewModel
 import com.calyrsoft.ucbp1.features.movies.data.api.MovieService
+import com.calyrsoft.ucbp1.features.movies.data.datasource.MovieLocalDataSource
 import com.calyrsoft.ucbp1.features.movies.data.datasource.MovieRemoteDataSource
+import com.calyrsoft.ucbp1.features.movies.data.datasource.local.MoviesAppDatabase
 import com.calyrsoft.ucbp1.features.movies.data.repository.MovieRepository
 import com.calyrsoft.ucbp1.features.movies.domain.repository.IMovieRepository
 import com.calyrsoft.ucbp1.features.movies.domain.usecase.GetPopularMoviesUseCase
@@ -38,8 +40,7 @@ import java.util.concurrent.TimeUnit
 
 val appModule = module {
 
-
-    // OkHttpClient
+    // --- Dependencias Comunes ---
     single {
         OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
@@ -48,7 +49,12 @@ val appModule = module {
             .build()
     }
 
-    // Retrofit
+    // --- Feature: Login ---
+    single<ILoginRepository> { LoginRepository() }
+    factory { LoginUseCase(get()) }
+    viewModel { LoginViewModel(get()) }
+
+    // --- Feature: Github ---
     single {
         Retrofit.Builder()
             .baseUrl("https://api.github.com/")
@@ -56,83 +62,51 @@ val appModule = module {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
-
-    //LOGIN
-    single<ILoginRepository> { LoginRepository() }
-    factory { LoginUseCase(get()) }
-    viewModel { LoginViewModel(get()) }
-
-    // GithubService
-    single<GithubService> {
-        get<Retrofit>().create(GithubService::class.java)
-    }
-    single{ GithubRemoteDataSource(get()) }
-    single<IGithubRepository>{ GithubRepository(get()) }
-
+    single<GithubService> { get<Retrofit>().create(GithubService::class.java) }
+    single { GithubRemoteDataSource(get()) }
+    single<IGithubRepository> { GithubRepository(get()) }
     factory { FindByNickNameUseCase(get()) }
     viewModel { GithubViewModel(get(), get()) }
 
-    single<IProfileRepository> { ProfileRepository() }
-    factory { GetProfileUseCase(get()) }
-    viewModel { ProfileViewModel(get()) }
 
-    // Retrofit para The Movie DB API
+    // --- Feature: Movies (con API y Room DB) ---
     single(named("MovieRetrofit")) {
         Retrofit.Builder()
             .baseUrl("https://api.themoviedb.org/3/")
-            .client(get()) // Reutilizamos el mismo OkHttpClient
+            .client(get())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
-
-    // MovieService
-    single<MovieService> {
-        get<Retrofit>(named("MovieRetrofit")).create(MovieService::class.java)
-    }
-
-    // DataSource
+    single<MovieService> { get<Retrofit>(named("MovieRetrofit")).create(MovieService::class.java) }
     single { MovieRemoteDataSource(get()) }
-
-    // Repository
-    single<IMovieRepository> { MovieRepository(get()) }
-
-    // UseCase
+    // Room DB para Movies
+    single {
+        Room.databaseBuilder(get(), MoviesAppDatabase::class.java, "movies_db").build()
+    }
+    single { get<MoviesAppDatabase>().movieDao() }
+    single { MovieLocalDataSource(get()) }
+    // Repositorio de Movies (con Remote y Local)
+    single<IMovieRepository> { MovieRepository(get(), get()) }
     factory { GetPopularMoviesUseCase(get()) }
-
-    // ViewModel
     viewModel { MoviesViewModel(get(), get()) }
 
-    //Dolar Cotizacion:
-    // DataSource
+
+    // --- Feature: Dollar (con Firebase y Room DB) ---
     single { RealTimeRemoteDataSource() }
-
-    // Repository (le pasamos el DataSource)
-    single<IDollarRepository> { DollarRepository(get()) }
-
-    // EXAMEN DOLLAR STAR
+    // Room DB para Dollar
     single {
-        Room.databaseBuilder(
-            get(),
-            AppDatabase::class.java,
-            "dollar_history_db"
-        ).build()
+        Room.databaseBuilder(get(), AppDatabase::class.java, "dollar_history_db").build()
     }
     single { get<AppDatabase>().rateHistoryDao() }
     single { DollarLocalDataSource(get()) }
-
-    //Dolar Cotizacion:
-//    single { RealTimeRemoteDataSource() }
-//    // Actualizamos la definición del DollarRepository
-//    single<IDollarRepository> { DollarRepository(get()) } // Koin le pasará el remote y local datasource
-//    factory { FetchDollarUseCase(get()) }
-//    viewModel { DollarViewModel(get()) }
-    //EXAMEN DOLLAR END
-
-    // UseCase (le pasamos el Repositorio)
+    // Repositorio de Dollar (con Remote y Local)
+    single<IDollarRepository> { DollarRepository(get()) }
     factory { FetchDollarUseCase(get()) }
-
-    // ViewModel
     viewModel { DollarViewModel(get()) }
 
 
+    // --- Feature: Profile ---
+    single<IProfileRepository> { ProfileRepository() }
+    factory { GetProfileUseCase(get()) }
+    viewModel { ProfileViewModel(get()) }
 }

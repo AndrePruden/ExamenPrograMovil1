@@ -2,12 +2,15 @@ package com.calyrsoft.ucbp1.features.movies.data.repository
 
 import com.calyrsoft.ucbp1.features.github.data.error.DataException
 import com.calyrsoft.ucbp1.features.github.domain.error.Failure
+import com.calyrsoft.ucbp1.features.movies.data.datasource.MovieLocalDataSource
 import com.calyrsoft.ucbp1.features.movies.data.datasource.MovieRemoteDataSource
+import com.calyrsoft.ucbp1.features.movies.data.datasource.local.entity.MovieEntity
 import com.calyrsoft.ucbp1.features.movies.domain.model.MovieModel
 import com.calyrsoft.ucbp1.features.movies.domain.repository.IMovieRepository
 
 class MovieRepository(
-    private val remoteDataSource: MovieRemoteDataSource
+    private val remoteDataSource: MovieRemoteDataSource,
+    private val localDataSource: MovieLocalDataSource
 ) : IMovieRepository {
     private val imageBaseUrl = "https://image.tmdb.org/t/p/w185"
 
@@ -16,6 +19,16 @@ class MovieRepository(
 
         return response.fold(
             onSuccess = { moviesDto ->
+                val movieEntities = moviesDto.mapNotNull { dto ->
+                    dto.posterPath?.let {
+                        MovieEntity(
+                            id = dto.id,
+                            title = dto.title,
+                            posterUrl = "$imageBaseUrl${dto.posterPath}"
+                        )
+                    }
+                }
+                localDataSource.saveMovies(movieEntities)
                 val movies = moviesDto.mapNotNull { dto ->
                     dto.posterPath?.let {
                         MovieModel(

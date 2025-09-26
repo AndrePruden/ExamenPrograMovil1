@@ -1,11 +1,7 @@
 package com.calyrsoft.ucbp1.features.profile.application
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -29,56 +25,63 @@ fun ProfileScreen(
 ) {
     val state = profileViewModel.state.collectAsState()
 
+    // Este efecto se asegura de llamar a showProfile solo una vez. Está correcto.
     LaunchedEffect(Unit) {
         profileViewModel.showProfile()
     }
 
-    when(val st = state.value) {
-        is ProfileViewModel.ProfileUiState.Error -> Text(st.message)
-        ProfileViewModel.ProfileUiState.Init -> Text("")
-        ProfileViewModel.ProfileUiState.Loading -> CircularProgressIndicator()
-        is ProfileViewModel.ProfileUiState.Success -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                AsyncImage(
-                    model = st.profile.pathUrl,
-                    contentDescription = "Foto de perfil de ${st.profile.name}",
+    // Añadimos un Box para centrar los estados de Carga y Error
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        when(val st = state.value) {
+            is ProfileViewModel.ProfileUiState.Error -> Text(st.message)
+            ProfileViewModel.ProfileUiState.Init -> {} // No mostramos nada en el estado inicial
+            ProfileViewModel.ProfileUiState.Loading -> CircularProgressIndicator()
+            is ProfileViewModel.ProfileUiState.Success -> {
+                Column(
                     modifier = Modifier
-                        .size(120.dp)
-                        .clip(CircleShape) // Opcional: imagen circular
-                        .border(2.dp, Color.Gray, CircleShape),
-                    contentScale = ContentScale.Crop
-                )
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    AsyncImage(
+                        // LA CLAVE: Asegurarse de usar .value para la URL
+                        model = st.profile.pathUrl.value,
+                        contentDescription = "Foto de perfil de ${st.profile.name.value}",
+                        modifier = Modifier
+                            .size(120.dp)
+                            .clip(CircleShape)
+                            .border(2.dp, Color.Gray, CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
 
-                Text(
-                    text = st.profile.name,
-                    style = MaterialTheme.typography.titleMedium
-                )
+                    // Verificamos que todos los Text también usen .value
+                    Text(
+                        text = st.profile.name.value,
+                        style = MaterialTheme.typography.titleMedium
+                    )
 
-                Text(
-                    text = st.profile.email,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                    Text(
+                        text = st.profile.email.value,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
 
-                Text(
-                    text = st.profile.cellphone,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                    Text(
+                        text = st.profile.cellphone.value,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
 
-                Text(
-                    text = st.profile.summary,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 8.dp),
-                    textAlign = TextAlign.Center
-                )
+                    Text(
+                        text = st.profile.summary.value,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 8.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }
-
-
 }
